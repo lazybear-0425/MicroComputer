@@ -4,7 +4,7 @@
 #define DEBOUNCE two_DELAY(10) while(!P3_2); two_DELAY(10) //網路上很多都是用DELAY
 
 const unsigned char table[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f}; // 0~9
-unsigned int counter = 0; //0~9999
+unsigned int counter = 0; //0 ~ 9999
 unsigned char idx = 0;
 
 //中斷 -> 做事情(中斷是一種硬體機制，用來通知CPU有個非同步事件發生了)
@@ -14,13 +14,13 @@ void int0_isr(void) __interrupt(0) {
     while(!P3_2){ //看當前狀況是否有持續按壓
         two_DELAY(10) // 延遲 -> 避免一下子跳太多
         time++;
-        if(time == 30) { //三秒後歸零
+        if(time == 20) { //兩秒後歸零
             counter = 0; 
             DEBOUNCE
             return;
         }
     }
-    counter += 50;
+    counter++;
     if(counter == 10000) counter = 0;
     DEBOUNCE
 }
@@ -28,7 +28,7 @@ void int0_isr(void) __interrupt(0) {
 void main(){
     EA=1;			//首先開啟總中斷
 	EX0=1;  		//開啟外部中斷 0
-	IT0=0;          // 下降沿觸發模式 (0)
+	IT0=0;          //下降沿觸發模式 (1)
     unsigned char Y6, Y5, Y4;
     while(1){
         //該數字位置
