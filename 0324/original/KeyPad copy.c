@@ -2,22 +2,33 @@
 #define NOTHING 0x00 //7段不會亮 
 #define DELAY(n) for (unsigned char l1 = 0; l1 < n; l1++); 
 #define two_DELAY(n) for(unsigned char l1 = 0; l1 < n; l1++) for(unsigned char l2 = 0; l2 < 255; l2++); 
-#define DEBOUNCE { two_DELAY(80) } //網路上很多都是用DELAY
+#define DEBOUNCE(BUTTON) {two_DELAY(10) while(!BUTTON); two_DELAY(10)} //網路上很多都是用DELAY
 
 const char seg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x58, 0x5e, 0x79, 0x71}; 
 char table[8] = {0}; //-1代表沒東西
-const char activity[] = {0xff, 0, 1, 0xff, 2, 0xff, 0xff, 0xff, 3};
 char now_pos = 0; //指向目前要填的table 
 char seg_pos = 0; //七段目前顯示
 
 char keypad_check(char r){ 
     P0 = ~(1 << (7 - r)); 
     DELAY(10) 
-    char return_act = activity[(~P0) & 0x0f];
-    if(return_act != 0xff){
-        DEBOUNCE
+    if(!(P0 & 0x01)) { 
+        DEBOUNCE(P0_0) 
+        return 0; 
+    } 
+    if(!(P0 & 0x02)) {
+        DEBOUNCE(P0_1) 
+        return 1; 
+    } 
+    if(!(P0 & 0x04)) { 
+        DEBOUNCE(P0_2) 
+        return 2; 
     }
-    return return_act;
+    if(!(P0 & 0x08)) { 
+        DEBOUNCE(P0_3) 
+        return 3; 
+    } 
+    return 0xff; 
 } 
 char keypad(){ 
     for(char i = 0; i < 4; i++){ 
