@@ -1,7 +1,7 @@
 # 定義變數
 S = sdcc
 PACK = packihx
-FILE = lab3-main
+FILE = Lab3-main
 LIBRARY = myIO.lib
 CFLAGS = -mmcs51
 
