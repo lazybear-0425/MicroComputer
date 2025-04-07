@@ -1,8 +1,8 @@
 #include<8051.h> 
 #define NOTHING 0x00 //7段不會亮 
-#define DELAY(n) for (unsigned char l1 = 0; l1 < n; l1++); 
-#define two_DELAY(n) for(unsigned char l1 = 0; l1 < n; l1++) for(unsigned char l2 = 0; l2 < 255; l2++); 
-#define DEBOUNCE { two_DELAY(90) } //網路上很多都是用DELAY
+// #define DELAY(n) for (unsigned char l1 = 0; l1 < n; l1++); 
+// #define two_DELAY(n) for(unsigned char l1 = 0; l1 < n; l1++) for(unsigned char l2 = 0; l2 < 255; l2++); 
+// #define DEBOUNCE { two_DELAY(90) } //網路上很多都是用DELAY
 
 const char seg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x58, 0x5e, 0x79, 0x71}; 
 char table[8] = {0}; //0代表沒東西
@@ -16,7 +16,7 @@ char keypad(){
     if((~(P0) & 0xf0) == 0) return 0xff;
     for(char i = 0; i < 4; i++){         
         P0 = ~(1 << (7 - i)); 
-        DELAY(10) 
+        // DELAY(10) //我把這個註解掉
         char return_act = activity[(~P0) & 0x0f];
         if(return_act != 0xff){ //-1會變成unsigned char -> 0x00
             //DEBOUNCE

@@ -7,3 +7,7 @@
 */*.sym
 */*.asm
 */*-v1.c
+*/*.o
+*/*.lib
+!0331/sub.asm
+0331/waste
