@@ -12,11 +12,14 @@ char seg_pos = 0; //七段目前顯示
 char last = 0xff; 
 
 char keypad(){ 
-    P0 = 0xf0;
-    if((~(P0) & 0xf0) == 0) return 0xff;
+    P0 = 0xf0; //input
+    //(button)
+    //產生 output
+    if((~(P0) & 0xf0) == 0) return 0xff; 
     for(char i = 0; i < 4; i++){         
-        P0 = ~(1 << (7 - i)); 
-        // DELAY(10) //我把這個註解掉
+        P0 = ~(1 << (7 - i)); //input
+        //(button)
+        //產生 output
         char return_act = activity[(~P0) & 0x0f];
         if(return_act != 0xff){ //-1會變成unsigned char -> 0x00
             //DEBOUNCE

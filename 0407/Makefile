@@ -1,6 +1,6 @@
 S=sdcc
 PACK=packihx
-FILE=timer
+FILE=reduce
 # .hex 為 packihx 輸出結果
 BlinkingLED: $(FILE).ihx 
 	$(PACK) $(FILE).ihx > $(FILE).hex 
