@@ -19,17 +19,14 @@ void int0(void) __interrupt(0) __using(1){
 
 char keypad(void){ 
     P0 = 0x0f; 
-    if(not_press) return 0xff; 
-    not_press = 0;
+    if(not_press) return 0xff; // 如果沒有按的話
+    // not_press = 0; // 恢復原狀
     for(char i = 0; i < 4; i++){         
-        P0 = ~(1 << (7 - i)); //input
-        //(button)
-        //產生 output
-        char return_act = activity[(~P0) & 0x0f];
+        P0 = ~(1 << (7 - i)); // 掃描檢查
+        char return_act = activity[(~P0) & 0x0f]; // 按下什麼
         if(return_act != 0xff){ //-1會變成unsigned char -> 0x00
-            //DEBOUNCE
-            return seg[i * 4 + return_act]; 
-        } 
+            return seg[i * 4 + return_act];      
+        }
     }  
     return 0xff;
 } 
@@ -48,15 +45,15 @@ void timer(void) __interrupt(5) __using(1){
     // __endasm;
 }
 
-void main(){ 
+void main(void){ 
     EA = 1;
     EX0 = 1;
     IT0 = 1;
     //timer 2
     ET2 = 1;
     TR2 = 1;
-    RCAP2L = (65536 - 5000) % 256;
-    RCAP2H = (65536 - 5000) / 256;
+    RCAP2L = 0x78; //(65536 - 5000) % 256;
+    RCAP2H = 0xec; //(65536 - 5000) / 256;
     //P2 = NOTHING; 
     while(1){ 
         char keypad_return = keypad(); 
@@ -68,7 +65,7 @@ void main(){
         //table對應seq_pos和now_pos 
         //7-(seq_pos - now_pos) % 8 == 要印哪個位數 
         //P2 = table[(7 - (((7 - seg_pos) - now_pos + 8) & 7))]; 
-        
+    //原始版本
 	// mov	a,_now_pos
 	// add	a, _seg_pos
 	// mov	r7,a

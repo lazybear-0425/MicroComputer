@@ -13,7 +13,6 @@
 	.globl _main
 	.globl _timer
 	.globl _keypad
-	.globl _int0
 	.globl _TF2
 	.globl _EXF2
 	.globl _RCLK
@@ -344,8 +343,8 @@ __start__stack:
 	.area HOME    (CODE)
 __interrupt_vect:
 	ljmp	__sdcc_gsinit_startup
-	ljmp	_int0
-	.ds	5
+	reti
+	.ds	7
 	reti
 	.ds	7
 	reti
@@ -451,32 +450,6 @@ __sdcc_program_startup:
 ;--------------------------------------------------------
 	.area CSEG    (CODE)
 ;------------------------------------------------------------
-;Allocation info for local variables in function 'int0'
-;------------------------------------------------------------
-;	reduce.c:12: void int0(void) __interrupt(0) __using(1){
-;	-----------------------------------------
-;	 function int0
-;	-----------------------------------------
-_int0:
-	ar7 = 0x0f
-	ar6 = 0x0e
-	ar5 = 0x0d
-	ar4 = 0x0c
-	ar3 = 0x0b
-	ar2 = 0x0a
-	ar1 = 0x09
-	ar0 = 0x08
-;	reduce.c:17: not_press = 0;
-	mov	_not_press,#0x00
-;	reduce.c:18: }
-	reti
-;	eliminated unneeded mov psw,# (no regs used in bank)
-;	eliminated unneeded push/pop not_psw
-;	eliminated unneeded push/pop dpl
-;	eliminated unneeded push/pop dph
-;	eliminated unneeded push/pop b
-;	eliminated unneeded push/pop acc
-;------------------------------------------------------------
 ;Allocation info for local variables in function 'keypad'
 ;------------------------------------------------------------
 ;i             Allocated to registers r7 
@@ -497,14 +470,12 @@ _keypad:
 	ar0 = 0x00
 ;	reduce.c:21: P0 = 0x0f; 
 	mov	_P0,#0x0f
-;	reduce.c:22: if(not_press) return 0xff; 
+;	reduce.c:22: if(not_press) return 0xff; // 如果沒有按的話
 	mov	a,_not_press
 	jz	00102$
 	mov	dpl, #0xff
 	ret
 00102$:
-;	reduce.c:23: not_press = 0;
-	mov	_not_press,#0x00
 ;	reduce.c:24: for(char i = 0; i < 4; i++){         
 	mov	r7,#0x00
 	mov	r6,#0x00
@@ -512,7 +483,7 @@ _keypad:
 	cjne	r6,#0x04,00136$
 00136$:
 	jnc	00105$
-;	reduce.c:25: P0 = ~(1 << (7 - i)); //input
+;	reduce.c:25: P0 = ~(1 << (7 - i)); // 掃描檢查
 	mov	ar5,r6
 	mov	a,#0x07
 	clr	c
@@ -527,7 +498,7 @@ _keypad:
 	djnz	b,00138$
 	cpl	a
 	mov	_P0,a
-;	reduce.c:28: char return_act = activity[(~P0) & 0x0f];
+;	reduce.c:26: char return_act = activity[(~P0) & 0x0f]; // 按下什麼
 	mov	a,_P0
 	cpl	a
 	mov	r5,a
@@ -536,11 +507,11 @@ _keypad:
 	mov	dptr,#_activity
 	movc	a,@a+dptr
 	mov	r5,a
-;	reduce.c:29: if(return_act != 0xff){ //-1會變成unsigned char -> 0x00
+;	reduce.c:27: if(return_act != 0xff){ //-1會變成unsigned char -> 0x00
 	cjne	r5,#0xff,00140$
 	sjmp	00108$
 00140$:
-;	reduce.c:31: return seg[i * 4 + return_act]; 
+;	reduce.c:28: return seg[i * 4 + return_act];      
 	mov	ar4,r7
 	mov	a,r4
 	add	a,r4
@@ -566,14 +537,14 @@ _keypad:
 	mov	ar7,r6
 	sjmp	00107$
 00105$:
-;	reduce.c:34: return 0xff;
+;	reduce.c:31: return 0xff;
 	mov	dpl, #0xff
-;	reduce.c:35: } 
+;	reduce.c:32: } 
 	ret
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'timer'
 ;------------------------------------------------------------
-;	reduce.c:37: void timer(void) __interrupt(5) __using(1){
+;	reduce.c:34: void timer(void) __interrupt(5) __using(1){
 ;	-----------------------------------------
 ;	 function timer
 ;	-----------------------------------------
@@ -586,13 +557,13 @@ _timer:
 	ar2 = 0x0a
 	ar1 = 0x09
 	ar0 = 0x08
-;	reduce.c:38: TF2 = 0;
+;	reduce.c:35: TF2 = 0;
 ;	assignBit
 	clr	_TF2
-;	reduce.c:39: seg_pos = ++seg_pos & 7;
+;	reduce.c:36: seg_pos = ++seg_pos & 7;
 	inc	_seg_pos
 	anl	_seg_pos,#0x07
-;	reduce.c:49: }
+;	reduce.c:46: }
 	reti
 ;	eliminated unneeded mov psw,# (no regs used in bank)
 ;	eliminated unneeded push/pop not_psw
@@ -605,7 +576,7 @@ _timer:
 ;------------------------------------------------------------
 ;keypad_return Allocated to registers r7 
 ;------------------------------------------------------------
-;	reduce.c:51: void main(){ 
+;	reduce.c:48: void main(void){ 
 ;	-----------------------------------------
 ;	 function main
 ;	-----------------------------------------
@@ -618,31 +589,31 @@ _main:
 	ar2 = 0x02
 	ar1 = 0x01
 	ar0 = 0x00
-;	reduce.c:52: EA = 1;
+;	reduce.c:49: EA = 1;
 ;	assignBit
 	setb	_EA
-;	reduce.c:53: EX0 = 1;
+;	reduce.c:50: EX0 = 1;
 ;	assignBit
 	setb	_EX0
-;	reduce.c:54: IT0 = 1;
+;	reduce.c:51: IT0 = 1;
 ;	assignBit
 	setb	_IT0
-;	reduce.c:56: ET2 = 1;
+;	reduce.c:53: ET2 = 1;
 ;	assignBit
 	setb	_ET2
-;	reduce.c:57: TR2 = 1;
+;	reduce.c:54: TR2 = 1;
 ;	assignBit
 	setb	_TR2
-;	reduce.c:58: RCAP2L = (65536 - 5000) % 256;
+;	reduce.c:55: RCAP2L = 0x78; //(65536 - 5000) % 256;
 	mov	_RCAP2L,#0x78
-;	reduce.c:59: RCAP2H = (65536 - 5000) / 256;
+;	reduce.c:56: RCAP2H = 0xec; //(65536 - 5000) / 256;
 	mov	_RCAP2H,#0xec
-;	reduce.c:61: while(1){ 
+;	reduce.c:58: while(1){ 
 00105$:
-;	reduce.c:62: char keypad_return = keypad(); 
+;	reduce.c:59: char keypad_return = keypad(); 
 	lcall	_keypad
 	mov	r7, dpl
-;	reduce.c:63: if(keypad_return != 0xff && last != keypad_return){ 
+;	reduce.c:60: if(keypad_return != 0xff && last != keypad_return){ 
 	cjne	r7,#0xff,00127$
 	sjmp	00102$
 00127$:
@@ -650,18 +621,18 @@ _main:
 	cjne	a,_last,00128$
 	sjmp	00102$
 00128$:
-;	reduce.c:64: table[now_pos] = keypad_return; 
+;	reduce.c:61: table[now_pos] = keypad_return; 
 	mov	a,_now_pos
 	add	a, #_table
 	mov	r0,a
 	mov	@r0,ar7
-;	reduce.c:65: now_pos = (++now_pos) & 7; 
+;	reduce.c:62: now_pos = (++now_pos) & 7; 
 	inc	_now_pos
 	anl	_now_pos,#0x07
 00102$:
-;	reduce.c:67: last = keypad_return; // always要更新
+;	reduce.c:64: last = keypad_return; // always要更新
 	mov	_last,r7
-;	reduce.c:97: __endasm;
+;	reduce.c:94: __endasm;
 	clr	c
 	mov	a, #0x0f
 	subb	a, _now_pos
@@ -673,9 +644,9 @@ _main:
 	add	a, #_table
 	mov	r1,a
 	mov	_P2,@r1
-;	reduce.c:100: P1 = seg_pos; 
+;	reduce.c:97: P1 = seg_pos; 
 	mov	_P1,_seg_pos
-;	reduce.c:103: }
+;	reduce.c:100: }
 	sjmp	00105$
 	.area CSEG    (CODE)
 	.area CONST   (CODE)
