@@ -8,6 +8,12 @@ const unsigned char seg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7
 char record[8] = {0};
 char idx = 0;
 
+void timer2(void) __interrupt(5) __using(1){
+    TF2 = 0;
+    P1 = idx;
+    P2 = record[idx];
+    if(++idx == 8) idx = 0;
+}
 void DS18B20_Init(void);
 int DS18B20_ReadTemperature(void);
 unsigned char DS18B20_ReadByte(void);
@@ -16,13 +22,15 @@ void ConvertToTemperature(int rawTemp);
 void DS18B20_WriteByte(unsigned char byte);
 
 void main(void){
+    EA = 1;
+    ET2 = 1;
+    RCAP2H = 0xEA; //(65536 - 59286) / 256;
+    RCAP2L = 0x60; //(65536 - 59286) % 256;
+    TR2 = 1;
     while(1){
         int temp_raw;
         temp_raw = DS18B20_ReadTemperature(); // 读取温度
         ConvertToTemperature(temp_raw); // 转换温度
-        P1 = idx;
-        P2 = record[idx];
-        if(++idx == 8) idx = 0;
     }
 }
 
@@ -60,14 +68,14 @@ void DS18B20_WriteByte(unsigned char dat) {
         dat=dat>>1;
         if(testb){     // 寫1部分 
             DQ=0;
-            i++;i++;
+            //i++;i++;
             DQ=1;
-            i=8;while(i>0)i--;
+            i=8;while(i)i--;
         } else {
             DQ=0;       //寫0部分
-            i=8;while(i>0)i--;
+            i=8;while(i)i--;
             DQ=1;
-            i++;i++;
+            //i++;i++;
         }   
     }
 }
